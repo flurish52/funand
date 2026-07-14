@@ -1,0 +1,271 @@
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    /* Body/UI face — clean, quiet, gets out of the way. */
+    --font-sans:
+    'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+'Noto Color Emoji';
+
+    /* Display face — headlines & logo. Fraunces is a warm, slightly
+       irregular serif (built-in "wonky" optical sizing) — it reads as
+       drawn/printed rather than app-generated. Requires the Fraunces
+       <link> tag in app.blade.php, see README. */
+    --font-display:
+'Fraunces', 'Instrument Sans', ui-serif, Georgia, serif;
+
+    /* Hand face — marker/pen annotations: sticky-note labels, tape
+       captions, the doodled underline. Used sparingly, never for body
+       copy. Requires the Caveat <link> tag. */
+    --font-hand:
+'Caveat', 'Instrument Sans', cursive;
+
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+
+    --color-tertiary: var(--tertiary);
+    --color-tertiary-foreground: var(--tertiary-foreground);
+
+    --color-primary-content: var(--primary-foreground);
+    --color-secondary-content: var(--secondary-foreground);
+    --color-tertiary-content: var(--tertiary-foreground);
+
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    --color-sidebar: var(--sidebar-background);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    /* --- Motion: small, imperfect, hand-made — never a big soft blob
+       drifting behind the fold. Used on tape/pins/stickers only. --- */
+
+    --animate-wiggle: wiggle 0.4s ease-in-out;
+
+    @keyframes wiggle {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-6deg); }
+        75% { transform: rotate(6deg); }
+    }
+
+    --animate-sway: sway 5s ease-in-out infinite;
+
+    @keyframes sway {
+        0%, 100% { transform: rotate(var(--sway-from, -2deg)); }
+        50% { transform: rotate(var(--sway-to, 2deg)); }
+    }
+
+    --animate-bob: bob 4.5s ease-in-out infinite;
+
+    @keyframes bob {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    --animate-marquee: marquee 26s linear infinite;
+
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    --animate-pop-in: popIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+    @keyframes popIn {
+        0% { transform: scale(0.92) rotate(-1deg); opacity: 0; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    --animate-draw: draw 0.9s ease-out 0.4s both;
+
+    @keyframes draw {
+        from { stroke-dashoffset: 240; }
+        to { stroke-dashoffset: 0; }
+    }
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+@layer utilities {
+    body,
+    html {
+        --font-sans:
+            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+            'Noto Color Emoji';
+    }
+
+    /* Corkboard dot-grid — a tactile, printed texture instead of a
+       blurred gradient blob. Very low contrast against the paper bg. */
+    .bg-dot-grid {
+        background-image: radial-gradient(var(--border) 1.4px, transparent 1.4px);
+        background-size: 24px 24px;
+    }
+
+    /* Deckled / torn paper edge, used on note cards. Pure CSS, no image. */
+    .edge-torn {
+        clip-path: polygon(
+            0% 2%, 4% 0%, 9% 2%, 14% 0%, 19% 2%, 24% 0%, 29% 2%, 34% 0%,
+            39% 2%, 44% 0%, 49% 2%, 54% 0%, 59% 2%, 64% 0%, 69% 2%, 74% 0%,
+            79% 2%, 84% 0%, 89% 2%, 94% 0%, 100% 2%,
+            100% 98%, 96% 100%, 91% 98%, 86% 100%, 81% 98%, 76% 100%,
+            71% 98%, 66% 100%, 61% 98%, 56% 100%, 51% 98%, 46% 100%,
+            41% 98%, 36% 100%, 31% 98%, 26% 100%, 21% 98%, 16% 100%,
+            11% 98%, 6% 100%, 0% 98%
+        );
+    }
+
+    .shadow-paper {
+        box-shadow: 0 1px 0 rgba(43, 35, 32, 0.04), 0 10px 24px -12px rgba(43, 35, 32, 0.28);
+    }
+}
+
+:root {
+    /* Warm paper, not digital white — everything sits "on the desk". */
+    --background: #FBF2E4;
+    --foreground: #2B2320;
+
+    --card: #FFFCF5;
+    --card-foreground: #2B2320;
+
+    --popover: #FFFCF5;
+    --popover-foreground: #2B2320;
+
+    /* Ankara-cloth red — a real pigment red, not neon coral. */
+    --primary: #D6472C;
+    --primary-foreground: #FFF6EC;
+
+    /* Marigold — warm, a little dusty, not traffic-light yellow. */
+    --secondary: #E8A33D;
+    --secondary-foreground: #2B2320;
+
+    /* Deep palm teal — used as ink/accent, not as a pale background. */
+    --tertiary: #1F6F5C;
+    --tertiary-foreground: #FFF6EC;
+
+    --muted: #EFE2C8;
+    --muted-foreground: #7C6A52;
+
+    --accent: #F5D9C3;
+    --accent-foreground: #7A2E1B;
+
+    --destructive: #B3261E;
+    --destructive-foreground: #FFF6EC;
+
+    --border: #E3D0AC;
+    --input: #E3D0AC;
+    --ring: #D6472C;
+
+    --chart-1: #D6472C;
+    --chart-2: #E8A33D;
+    --chart-3: #1F6F5C;
+    --chart-4: #4C6E8A;
+    --chart-5: #8A5A3C;
+
+    --radius: 1rem;
+
+    --sidebar-background: #FFFCF5;
+    --sidebar-foreground: #2B2320;
+    --sidebar-primary: #D6472C;
+    --sidebar-primary-foreground: #FFF6EC;
+    --sidebar-accent: #F5D9C3;
+    --sidebar-accent-foreground: #7A2E1B;
+    --sidebar-border: #E3D0AC;
+    --sidebar-ring: #D6472C;
+    --sidebar: #FFFCF5;
+}
+
+.dark {
+    --background: #201911;
+    --foreground: #F5EAD8;
+
+    --card: #2B221A;
+    --card-foreground: #F5EAD8;
+
+    --popover: #2B221A;
+    --popover-foreground: #F5EAD8;
+
+    --primary: #E8593C;
+    --primary-foreground: #201911;
+
+    --secondary: #EFB559;
+    --secondary-foreground: #201911;
+
+    --tertiary: #2E9078;
+    --tertiary-foreground: #F5EAD8;
+
+    --muted: #33291E;
+    --muted-foreground: #B8A88E;
+
+    --accent: #3D2A20;
+    --accent-foreground: #F5C7A6;
+
+    --border: #40331F;
+    --input: #40331F;
+    --ring: #E8593C;
+
+    --sidebar-background: #2B221A;
+    --sidebar-foreground: #F5EAD8;
+    --sidebar-border: #40331F;
+    --sidebar: #2B221A;
+}
