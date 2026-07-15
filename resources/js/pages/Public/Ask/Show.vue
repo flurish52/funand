@@ -11,7 +11,6 @@ import SchedulingStep from '@/Components/Ask/schedulingStep.vue'
 import FinalStep from '@/Components/Ask/finalStep.vue'
 import AlreadyAnswered from '@/Components/Ask/AlreadyAnswered.vue'
 import BrandFooterCta from '@/Components/Ask/brandFooterCta.vue'
-import AppLogo from "@/components/AppLogo.vue";
 
 const props = defineProps({
     ask: { type: Object, required: true },

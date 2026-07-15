@@ -9,16 +9,21 @@ class AskPolicy
 {
     public function update(User $user, Ask $ask): bool
     {
-        return $user->id === $ask->user_id;
+        return $this->ownsAsk($user, $ask);
     }
 
     public function delete(User $user, Ask $ask): bool
     {
-        return $user->id === $ask->user_id;
+        return $this->ownsAsk($user, $ask);
     }
 
     public function view(User $user, Ask $ask): bool
     {
-        return $user->id === $ask->user_id;
+        return $this->ownsAsk($user, $ask);
+    }
+
+    private function ownsAsk(User $user, Ask $ask): bool
+    {
+        return (int) $user->id === (int) $ask->user_id;
     }
 }

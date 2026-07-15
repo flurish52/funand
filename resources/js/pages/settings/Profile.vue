@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
 /* @chisel-email-verification */
 import { send } from '@/routes/verification';
+import AuthSimpleLayout from "@/layouts/auth/AuthSimpleLayout.vue";
 /* @end-chisel-email-verification */
 
 defineOptions({
@@ -107,5 +108,6 @@ const user = computed(() => page.props.auth.user);
         </Form>
     </div>
 
-    <DeleteUser />
+<!--    <DeleteUser />-->
+
 </template>

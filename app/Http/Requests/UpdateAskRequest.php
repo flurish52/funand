@@ -9,8 +9,9 @@ class UpdateAskRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Only the owner may update their own ask
-        return $this->user()->id === $this->route('ask')->user_id;
+        $ask = $this->route('ask');
+
+        return (int) $this->user()->id === (int) $ask->user_id;
     }
 
     public function rules(): array

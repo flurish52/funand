@@ -38,6 +38,7 @@ class Ask extends Model
         'is_published' => 'boolean',
         'min_date' => 'date',
         'max_date' => 'date',
+        'user_id' => 'integer',
     ];
 
     public function user(): BelongsTo

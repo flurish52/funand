@@ -6,7 +6,7 @@ use App\Http\Controllers\PublicAskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', fn () => Inertia::render('Home'))->name('home');
+Route::get('/', fn () => Inertia::render('Public/Home'))->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [AskController::class, 'index'])->name('dashboard');

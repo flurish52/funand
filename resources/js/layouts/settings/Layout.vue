@@ -9,6 +9,7 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
+import AuthSimpleLayout from "@/layouts/auth/AuthSimpleLayout.vue";
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -29,7 +30,8 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="px-4 py-6">
+    <AuthSimpleLayout>
+        <div class="px-4 py-6">
         <Heading
             title="Settings"
             description="Manage your profile and account settings"
@@ -68,4 +70,5 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
             </div>
         </div>
     </div>
+    </AuthSimpleLayout>
 </template>

@@ -7,6 +7,7 @@ import { Link, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import ToggleSwitch from '@/Components/Ask/Toggleswitch.vue'
 import { route } from 'ziggy-js'
+import AuthSimpleLayout from "@/layouts/auth/AuthSimpleLayout.vue";
 
 const props = defineProps({
     asks: { type: Array, required: true },
@@ -94,7 +95,7 @@ const timeToYes = computed(() => {
 </script>
 
 <template>
-    <div class="max-w-3xl mx-auto p-6 space-y-6 relative" @keydown="onKeydown">
+        <div class="max-w-3xl mx-auto p-6 space-y-6 relative" @keydown="onKeydown">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h1 class="font-display font-bold text-2xl text-foreground">Your asks</h1>
             <Link

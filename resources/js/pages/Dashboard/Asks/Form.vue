@@ -6,6 +6,7 @@
  */
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useForm } from '@inertiajs/vue3'
+import AuthSimpleLayout from "@/layouts/auth/AuthSimpleLayout.vue";
 
 const props = defineProps({
     ask: { type: Object, default: null },
@@ -204,7 +205,7 @@ function copyLink() {
 </script>
 
 <template>
-    <div class="max-w-2xl mx-auto p-6">
+        <div class="max-w-2xl mx-auto p-6">
         <div class="flex items-center gap-3 mb-6">
             <svg aria-hidden="true" class="shrink-0 animate-bob" width="26" height="26" viewBox="0 0 22 22">
                 <circle cx="11" cy="9" r="7" class="fill-primary" />

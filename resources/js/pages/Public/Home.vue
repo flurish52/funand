@@ -16,12 +16,11 @@ import Footer from '@/components/Home/footer.vue'
 </script>
 
 <template>
-  <Head title="Coaxed — Home." />
+  <Head title="Coaxed — Home" />
 
   <div class="relative min-h-screen bg-background font-sans overflow-x-hidden">
     <Grain />
     <div class="relative z-10">
-      <Navbar />
       <Hero />
       <StatsTicker />
       <HowItWorks />
