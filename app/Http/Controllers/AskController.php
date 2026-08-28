@@ -30,13 +30,13 @@ class AskController extends Controller
                 $response = $ask->response;
 
                 return [
-                    // ...keep all your existing fields (id, for_name, question, slug, is_published, created_at, responses_count)...
                     'id' => $ask->id,
                     'for_name' => $ask->for_name,
                     'question' => $ask->question,
                     'is_published' => $ask->is_published,
                     'responses_count' => $ask->responses_count,
                     'slug' => $ask->primaryLink()?->slug,
+                    'share_text' => $ask->primaryLink()?->share_text,
                     'cover_image' => $ask->cover_image,
                     'created_at' => $ask->created_at->diffForHumans(),
                     'response_status' => match (true) {
