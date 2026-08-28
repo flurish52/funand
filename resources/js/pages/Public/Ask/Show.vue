@@ -5,10 +5,10 @@
  * step 1 jumps straight to step 3. If the ask was already answered before
  */
 import { ref } from 'vue'
-import WelcomeStep from '@/Components/Ask/welcomeStep.vue'
-import SchedulingStep from '@/Components/Ask/schedulingStep.vue'
-import FinalStep from '@/Components/Ask/finalStep.vue'
-import BrandFooterCta from '@/Components/Ask/brandFooterCta.vue'
+import WelcomeStep from '@/components/Ask/WelcomeStep.vue'
+import SchedulingStep from '@/components/Ask/SchedulingStep.vue'
+import FinalStep from '@/components/Ask/FinalStep.vue'
+import BrandFooterCta from '@/components/Ask/BrandFooterCta.vue'
 
 const props = defineProps({
     ask: { type: Object, required: true },
@@ -51,9 +51,6 @@ async function saveResponse(payload) {
             }),
         })
 
-
-        // Laravel validation failure — surface field errors on the form
-        // instead of silently failing.
         if (res.status === 422) {
             const data = await res.json()
             serverErrors.value = data.errors ?? {
