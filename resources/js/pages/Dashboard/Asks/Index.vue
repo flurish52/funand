@@ -130,9 +130,7 @@ const timeToYes = computed(() => {
                 + New ask
             </Link>
         </div>
-
-        {{asks}}
-
+        
         <div v-if="asks.length > 0" class="relative">
             <svg
                 class="absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/35"
