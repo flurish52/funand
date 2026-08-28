@@ -5,7 +5,8 @@
  */
 import { Link, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
-import ToggleSwitch from '@/Components/Ask/Toggleswitch.vue'
+import ToggleSwitch from '@/components/Ask/Toggleswitch.vue'
+import { Share2 } from '@lucide/vue'
 import { route } from 'ziggy-js'
 
 const props = defineProps({
@@ -37,10 +38,34 @@ function destroy(ask) {
     }
 }
 
-function copyLink(ask) {
+// Single share action: tries the native share sheet first (best on
+// mobile, and where multiple apps can be picked), only falls back to
+// a plain clipboard copy if the Web Share API isn't available or the
+// browser rejects it — this replaces a separate "copy link" button.
+async function share(ask) {
     const url = `${window.location.origin}/for-${ask.slug}`
-    navigator.clipboard.writeText(url)
-    showToast('Link copied.')
+    const shareData = {
+        title: ask.question,
+        text: ask.share_text || ask.question,
+        url,
+    }
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData)
+            return
+        } catch (err) {
+            if (err?.name === 'AbortError') return
+        }
+    }
+
+    try {
+        await navigator.clipboard.writeText(url)
+        showToast('Link copied.')
+    } catch (err) {
+        console.error(err)
+        showToast("Couldn't copy the link — try again.")
+    }
 }
 
 function showToast(message) {
@@ -95,7 +120,7 @@ const timeToYes = computed(() => {
 </script>
 
 <template>
-        <div class="max-w-3xl mx-auto p-6 space-y-6 relative" @keydown="onKeydown">
+    <div class="max-w-3xl mx-auto p-6 space-y-6 relative" @keydown="onKeydown">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h1 class="font-display font-bold text-2xl text-foreground">Your asks</h1>
             <Link
@@ -205,10 +230,11 @@ const timeToYes = computed(() => {
                 <button
                     v-if="ask.slug"
                     type="button"
-                    class="text-sm rounded-full border border-border px-3 py-1 text-foreground/70 hover:border-tertiary hover:text-tertiary transition-colors"
-                    @click="copyLink(ask)"
+                    class="flex items-center gap-1.5 text-sm rounded-full border border-border px-3 py-1 text-foreground/70 hover:border-tertiary hover:text-tertiary transition-colors"
+                    @click="share(ask)"
                 >
-                    Copy link
+                    <Share2 class="size-3.5" />
+                    Share
                 </button>
 
                 <Link
