@@ -19,7 +19,7 @@ class StoreAskRequest extends FormRequest
             'type' => ['required', 'in:date,money,custom'],
 
             // Step 1
-            'cover_image' => ['nullable', 'image', 'max:4096'],
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'question' => ['required', 'string', 'max:255'],
             'accept_label' => ['required', 'string', 'max:40'],
             'decline_label' => ['required', 'string', 'max:40'],
