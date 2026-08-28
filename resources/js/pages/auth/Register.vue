@@ -4,6 +4,7 @@ import PasswordInput from '@/components/PasswordInput.vue';
 import Spinner from '@/components/Spinner.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Form, Head } from '@inertiajs/vue3';
+import GoogleSignInButton from "@/components/GoogleSignInButton.vue";
 
 defineProps({
     passwordRules: {
@@ -39,6 +40,13 @@ defineOptions({
             <div class="mb-8 text-center">
                 <h1 class="text-lg font-semibold tracking-tight text-foreground">Create an account</h1>
                 <p class="mt-1.5 font-hand text-lg text-tertiary -rotate-1">costs nothing, takes a minute</p>
+            </div>
+
+            <GoogleSignInButton/>
+            <div class="my-5 flex items-center gap-3">
+                <div class="h-px flex-1 bg-border"></div>
+                <span class="text-xs text-foreground/45">or</span>
+                <div class="h-px flex-1 bg-border"></div>
             </div>
 
             <Form

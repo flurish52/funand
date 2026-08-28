@@ -2,10 +2,11 @@
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
-import { Form, Head } from '@inertiajs/vue3';
+import {Form, Head} from '@inertiajs/vue3';
 /* @chisel-passkeys */
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import Spinner from "@/components/Spinner.vue";
+import GoogleSignInButton from "@/components/GoogleSignInButton.vue";
 /* @end-chisel-passkeys */
 
 defineOptions({
@@ -28,13 +29,15 @@ defineProps({
 </script>
 
 <template>
-    <Head title="Log in" />
+    <Head title="Log in"/>
 
     <div class="relative mx-auto w-full max-w-sm">
-        <svg aria-hidden="true" class="pointer-events-none absolute -top-2.5 left-1/2 -translate-x-1/2 animate-bob" width="22" height="22" viewBox="0 0 22 22">
-            <circle cx="11" cy="9" r="7" class="fill-primary" />
-            <circle cx="8.5" cy="6.5" r="2" fill="white" fill-opacity="0.45" />
-            <line x1="11" y1="15" x2="11" y2="21" stroke="#2B2320" stroke-opacity="0.25" stroke-width="1.5" stroke-linecap="round" />
+        <svg aria-hidden="true" class="pointer-events-none absolute -top-2.5 left-1/2 -translate-x-1/2 animate-bob"
+             width="22" height="22" viewBox="0 0 22 22">
+            <circle cx="11" cy="9" r="7" class="fill-primary"/>
+            <circle cx="8.5" cy="6.5" r="2" fill="white" fill-opacity="0.45"/>
+            <line x1="11" y1="15" x2="11" y2="21" stroke="#2B2320" stroke-opacity="0.25" stroke-width="1.5"
+                  stroke-linecap="round"/>
         </svg>
         <span
             aria-hidden="true"
@@ -55,10 +58,12 @@ defineProps({
                 {{ status }}
             </div>
 
-            <!-- @chisel-passkeys -->
-            <PasskeyVerify />
-            <!-- @end-chisel-passkeys -->
-
+            <GoogleSignInButton/>
+            <div class="my-5 flex items-center gap-3">
+                <div class="h-px flex-1 bg-border"></div>
+                <span class="text-xs text-foreground/45">or</span>
+                <div class="h-px flex-1 bg-border"></div>
+            </div>
             <Form
                 action="/login"
                 method="post"
@@ -83,7 +88,7 @@ defineProps({
                                 errors.email && 'border-destructive shake ring-2 ring-destructive/15',
                             ]"
                         />
-                        <InputError :message="errors.email" />
+                        <InputError :message="errors.email"/>
                     </div>
 
                     <div class="grid gap-2">
@@ -110,7 +115,7 @@ defineProps({
                                 errors.password && 'border-destructive shake ring-2 ring-destructive/15',
                             ]"
                         />
-                        <InputError :message="errors.password" />
+                        <InputError :message="errors.password"/>
                     </div>
 
                     <Button
@@ -120,7 +125,7 @@ defineProps({
                         :disabled="processing"
                         data-test="login-button"
                     >
-                        <Spinner v-if="processing" class="mr-2" />
+                        <Spinner v-if="processing" class="mr-2"/>
                         Log in
                     </Button>
                 </div>
@@ -138,10 +143,17 @@ defineProps({
 
 <style scoped>
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-4px);
+    }
+    75% {
+        transform: translateX(4px);
+    }
 }
+
 .shake {
     animation: shake 0.35s;
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AskController;
 use App\Http\Controllers\AskResponseController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\PublicAskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -26,5 +27,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/for-{slug}', [PublicAskController::class, 'show'])->name('ask.public.show');
 Route::post('/for-{slug}/respond', [PublicAskController::class, 'respond'])->name('ask.public.respond');
 
+Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
 
 require __DIR__.'/settings.php';
