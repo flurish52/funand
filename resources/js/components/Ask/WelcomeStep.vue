@@ -1,23 +1,5 @@
 <script setup>
-/**
- * Step 1 of the public ask. Two independent escape mechanisms on the
- * decline button, both always wired up (a device can have a mouse
- * AND a touchscreen, so we don't gate on device-detection — we gate
- * on which event actually fires):
- *
- *  - DESKTOP: mousemove over the arena repels the button away from
- *    the cursor in real vector space, clamped to stay inside the
- *    arena. This runs continuously, not just on hover of the button
- *    itself, so it starts dodging before the cursor even reaches it.
- *  - TOUCH / fallback: an actual click or tap that lands on it still
- *    counts — it shrinks a notch and, after a few taps, disappears.
- *    This is the only path on a touchscreen, since there's no cursor
- *    to repel from ahead of time.
- *
- * The accept button grows in exact inverse proportion as the decline
- * button shrinks (same 0.16-per-tap rate), so the "yes" only gets
- * more inevitable-looking the more "no" gets dodged/tapped away.
- */
+
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
