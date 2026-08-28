@@ -63,11 +63,32 @@ const formattedMaxDate = computed(() => formatDate(props.form.max_date))
                     <label class="block text-sm font-semibold text-foreground">Venue options</label>
                     <span class="text-xs text-foreground/45">optional</span>
                 </div>
-                <div v-for="(venue, i) in form.venues" :key="i" class="mb-2">
-                    <div class="flex gap-2">
-                        <input v-model="venue.name" type="text" placeholder="Venue name" class="flex-1 rounded-lg border-1.5 border-border bg-background/40 h-11 px-3.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                        <input v-model="venue.address" type="text" placeholder="Address (optional)" class="flex-1 rounded-lg border-1.5 border-border bg-background/40 h-11 px-3.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                        <button type="button" class="text-destructive px-2 hover:opacity-70" aria-label="Remove venue" @click="removeVenue(i)">✕</button>
+                <div
+                    v-for="(venue, i) in form.venues"
+                    :key="i"
+                    class="mb-3 rounded-lg border border-border/60 bg-background/20 p-3 sm:border-0 sm:bg-transparent sm:p-0"
+                >
+                    <div class="flex flex-col sm:flex-row sm:gap-2">
+                        <div class="flex gap-2">
+                            <input v-model="venue.name" type="text" placeholder="Venue name" class="flex-1 min-w-0 rounded-lg border-1.5 border-border bg-background/40 h-11 px-3.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
+                            <button
+                                type="button"
+                                class="shrink-0 flex items-center justify-center w-11 h-11 rounded-lg border-1.5 border-border text-destructive hover:bg-destructive/10 transition-colors"
+                                aria-label="Remove venue"
+                                @click="removeVenue(i)"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <input v-model="venue.address" type="text" placeholder="Address (optional)" class="mt-2 sm:mt-0 flex-1 min-w-0 rounded-lg border-1.5 border-border bg-background/40 h-11 px-3.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
+                        <button
+                            type="button"
+                            class="hidden shrink-0 items-center justify-center w-11 h-11 rounded-lg border-1.5 border-border text-destructive hover:bg-destructive/10 transition-colors"
+                            aria-label="Remove venue"
+                            @click="removeVenue(i)"
+                        >
+                            ✕
+                        </button>
                     </div>
                     <p v-if="form.errors[`venues.${i}.name`]" class="text-destructive text-sm mt-1">{{ form.errors[`venues.${i}.name`] }}</p>
                     <p v-if="form.errors[`venues.${i}.address`]" class="text-destructive text-sm mt-1">{{ form.errors[`venues.${i}.address`] }}</p>
