@@ -3,22 +3,18 @@
  * Public 3-step page: /for-{slug}
  * Step count adapts to the ask: if it has no scheduling step, accepting on
  * step 1 jumps straight to step 3. If the ask was already answered before
- * this page load, we skip the flow entirely and show a locked state.
  */
 import { ref } from 'vue'
 import WelcomeStep from '@/Components/Ask/welcomeStep.vue'
 import SchedulingStep from '@/Components/Ask/schedulingStep.vue'
 import FinalStep from '@/Components/Ask/finalStep.vue'
-import AlreadyAnswered from '@/Components/Ask/AlreadyAnswered.vue'
 import BrandFooterCta from '@/Components/Ask/brandFooterCta.vue'
 
 const props = defineProps({
     ask: { type: Object, required: true },
     slug: { type: String, required: true },
-    alreadyAnswered: { type: Boolean, default: false },
 })
 
-const locked = ref(props.alreadyAnswered)
 const step = ref(1)
 const submitting = ref(false)
 const declineTaps = ref(0)
@@ -55,11 +51,6 @@ async function saveResponse(payload) {
             }),
         })
 
-        // Already answered between page load and this submit.
-        if (res.status === 409) {
-            locked.value = true
-            return
-        }
 
         // Laravel validation failure — surface field errors on the form
         // instead of silently failing.
@@ -104,8 +95,7 @@ async function saveResponse(payload) {
 
 
         <div class="relative z-10 flex w-full flex-col items-center">
-            <AlreadyAnswered v-if="locked" :ask="ask" />
-            <template v-else>
+            <template>
                 <WelcomeStep v-if="step === 1" :ask="ask" @accepted="onAccepted" />
                 <SchedulingStep
                     v-else-if="step === 2"

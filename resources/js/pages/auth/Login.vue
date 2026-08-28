@@ -1,20 +1,11 @@
-<script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+<script setup>
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-/* @chisel-registration */
-import { register } from '@/routes';
-/* @end-chisel-registration */
-import { store } from '@/routes/login';
-import { request } from '@/routes/password';
+import { Form, Head } from '@inertiajs/vue3';
 /* @chisel-passkeys */
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
+import Spinner from "@/components/Spinner.vue";
 /* @end-chisel-passkeys */
 
 defineOptions({
@@ -24,17 +15,22 @@ defineOptions({
     },
 });
 
-defineProps<{
-    status?: string;
-    canResetPassword: boolean;
-}>();
+defineProps({
+    status: {
+        type: String,
+        default: null,
+    },
+    canResetPassword: {
+        type: Boolean,
+        default: false,
+    },
+});
 </script>
 
 <template>
     <Head title="Log in" />
 
     <div class="relative mx-auto w-full max-w-sm">
-        <!-- pin + tape: same corkboard treatment as the landing page cards -->
         <svg aria-hidden="true" class="pointer-events-none absolute -top-2.5 left-1/2 -translate-x-1/2 animate-bob" width="22" height="22" viewBox="0 0 22 22">
             <circle cx="11" cy="9" r="7" class="fill-primary" />
             <circle cx="8.5" cy="6.5" r="2" fill="white" fill-opacity="0.45" />
@@ -46,10 +42,16 @@ defineProps<{
             style="clip-path: polygon(4% 0%, 100% 0%, 96% 100%, 0% 100%)"
         ></span>
 
-        <div class="edge-torn rounded-lg border border-border bg-card px-8 pt-9 pb-8 shadow-paper">
-            <p class="mb-6 text-center font-hand text-xl text-tertiary -rotate-1">log in to see who said yes</p>
+        <div class="edge-torn rounded-xl border border-border bg-card px-10 pt-11 pb-10 shadow-paper">
+            <div class="mb-8 text-center">
+                <h1 class="text-lg font-semibold tracking-tight text-foreground">Welcome back</h1>
+                <p class="mt-1.5 font-hand text-lg text-tertiary -rotate-1">log in to see who said yes</p>
+            </div>
 
-            <div v-if="status" class="mb-5 rounded-lg border border-tertiary/25 bg-tertiary/10 px-4 py-2.5 text-center text-sm font-semibold text-tertiary">
+            <div
+                v-if="status"
+                class="mb-6 rounded-lg border border-tertiary/25 bg-tertiary/10 px-4 py-3 text-center text-sm font-medium text-tertiary"
+            >
                 {{ status }}
             </div>
 
@@ -58,14 +60,15 @@ defineProps<{
             <!-- @end-chisel-passkeys -->
 
             <Form
-                v-bind="store.form()"
+                action="/login"
+                method="post"
                 :reset-on-success="['password']"
                 v-slot="{ errors, processing }"
-                class="flex flex-col gap-5"
+                class="flex flex-col gap-7"
             >
-                <div class="grid gap-6">
+                <div class="grid gap-5">
                     <div class="grid gap-2">
-                        <Label for="email">Email address</Label>
+                        <Label for="email" class="text-sm font-medium text-foreground/90">Email address</Label>
                         <Input
                             id="email"
                             type="email"
@@ -76,7 +79,7 @@ defineProps<{
                             autocomplete="email"
                             placeholder="email@example.com"
                             :class="[
-                                'rounded-lg border-1.5 transition-shadow',
+                                'h-11 rounded-lg border-1.5 px-4 text-[15px] transition-shadow',
                                 errors.email && 'border-destructive shake ring-2 ring-destructive/15',
                             ]"
                         />
@@ -85,10 +88,10 @@ defineProps<{
 
                     <div class="grid gap-2">
                         <div class="flex items-center justify-between">
-                            <Label for="password">Password</Label>
+                            <Label for="password" class="text-sm font-medium text-foreground/90">Password</Label>
                             <TextLink
                                 v-if="canResetPassword"
-                                :href="request()"
+                                href="/forgot-password"
                                 class="font-hand text-base text-tertiary hover:text-primary"
                                 :tabindex="5"
                             >
@@ -103,28 +106,21 @@ defineProps<{
                             autocomplete="current-password"
                             placeholder="Password"
                             :class="[
-                                'rounded-lg border-1.5 transition-shadow',
+                                'h-11 rounded-lg border-1.5 px-4 text-[15px] transition-shadow',
                                 errors.password && 'border-destructive shake ring-2 ring-destructive/15',
                             ]"
                         />
                         <InputError :message="errors.password" />
                     </div>
 
-                    <div class="flex items-center justify-between">
-                        <Label for="remember" class="flex items-center space-x-3">
-                            <Checkbox id="remember" name="remember" :tabindex="3" />
-                            <span class="text-sm text-foreground/75">Remember me</span>
-                        </Label>
-                    </div>
-
                     <Button
                         type="submit"
-                        class="mt-1 w-full rounded-full bg-primary text-primary-foreground shadow-paper hover:-translate-y-0.5 hover:rotate-1 transition-all duration-200"
+                        class="mt-1 h-11 w-full rounded-full bg-primary text-[15px] font-medium text-primary-foreground shadow-paper transition-all duration-200 hover:-translate-y-0.5 hover:rotate-1"
                         :tabindex="4"
                         :disabled="processing"
                         data-test="login-button"
                     >
-                        <Spinner v-if="processing" />
+                        <Spinner v-if="processing" class="mr-2" />
                         Log in
                     </Button>
                 </div>
@@ -132,7 +128,7 @@ defineProps<{
                 <!-- @chisel-registration -->
                 <div class="text-center text-sm text-muted-foreground">
                     Don't have an account?
-                    <TextLink :href="register()" :tabindex="5" class="font-semibold text-primary">Sign up</TextLink>
+                    <TextLink href="/register" :tabindex="5" class="font-semibold text-primary">Sign up</TextLink>
                 </div>
                 <!-- @end-chisel-registration -->
             </Form>

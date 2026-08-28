@@ -18,8 +18,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('asks/{ask}/toggle-publish', [AskController::class, 'togglePublish'])
         ->name('asks.toggle-publish');
 
-//    Route::get('/responses', [AskResponseController::class, 'index'])->name('asks.responses.index');
-
+    Route::get('/asks/{ask}/responses', [AskResponseController::class, 'index'])
+        ->name('asks.responses.index');
 });
 
 // Public — no auth, this is the shareable link people receive

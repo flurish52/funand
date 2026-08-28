@@ -102,18 +102,6 @@ onUnmounted(() => {
                             </div>
 
                             <Link
-                                href="/settings/profile"
-                                class="flex items-center gap-2.5 px-3.5 py-2 text-sm text-foreground/80 hover:bg-accent/40 transition-colors"
-                                @click="closeMenu"
-                            >
-                                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" class="shrink-0 text-foreground/50">
-                                    <circle cx="8" cy="5.2" r="2.6" stroke="currentColor" stroke-width="1.4" />
-                                    <path d="M2.8 13.2c.9-2.6 2.9-3.9 5.2-3.9s4.3 1.3 5.2 3.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
-                                </svg>
-                                Profile
-                            </Link>
-
-                            <Link
                                 href="/logout"
                                 method="post"
                                 as="button"

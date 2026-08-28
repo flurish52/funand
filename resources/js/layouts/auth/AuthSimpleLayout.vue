@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { home } from '@/routes';
 
 defineProps<{
     title?: string;
@@ -23,7 +22,7 @@ defineProps<{
         <div class="relative w-full max-w-sm">
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col items-center gap-4">
-                    <Link :href="home()" class="relative flex flex-col items-center gap-3 font-medium">
+                    <Link href="#" class="relative flex flex-col items-center gap-3 font-medium">
                         <!-- pinned logo card, same pin + edge-torn + shadow-paper treatment as the auth cards -->
                         <div class="relative">
                             <svg

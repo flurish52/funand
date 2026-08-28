@@ -7,7 +7,6 @@ import { Link, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import ToggleSwitch from '@/Components/Ask/Toggleswitch.vue'
 import { route } from 'ziggy-js'
-import AuthSimpleLayout from "@/layouts/auth/AuthSimpleLayout.vue";
 
 const props = defineProps({
     asks: { type: Array, required: true },
@@ -55,7 +54,8 @@ function viewResponse(ask) {
         showToast(`No response from ${ask.for_name} yet.`)
         return
     }
-    selected.value = ask
+
+    router.get(route('asks.responses.index', ask.id))
 }
 
 function closeModal() {

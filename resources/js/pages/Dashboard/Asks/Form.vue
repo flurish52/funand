@@ -1,12 +1,15 @@
 <script setup>
 /**
  * Create/Edit form for an ask. Mirrors the public 3-step flow exactly:
- * Tab 1 = Welcome/Request, Tab 2 = Date/Venue, Tab 3 = Final message.
- * Plus link + publish settings at the bottom.
+ * Step 1 = Welcome/Request, Step 2 = Date/Venue, Step 3 = Final message + publish.
  */
-import { ref, computed, onBeforeUnmount } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import AuthSimpleLayout from "@/layouts/auth/AuthSimpleLayout.vue";
+import { ref, computed } from 'vue'
+import {Link, useForm} from '@inertiajs/vue3'
+import { Check } from '@lucide/vue'
+import Spinner from '@/components/Spinner.vue'
+import WelcomeStep from './partials/WelcomeStep.vue'
+import SchedulingStep from './partials/SchedulingStep.vue'
+import FinalStep from './partials/FinalStep.vue'
 
 const props = defineProps({
     ask: { type: Object, default: null },
@@ -15,10 +18,6 @@ const props = defineProps({
 const isEditing = computed(() => !!props.ask)
 const activeTab = ref(1)
 
-// Native <input type="date"> only accepts/reflects "YYYY-MM-DD". If the
-// backend sends a full timestamp (or anything else Date can parse), this
-// normalizes it so the field actually shows the existing value instead of
-// rendering blank while the real value silently sits in form state.
 function toInputDate(date) {
     if (!date) return ''
     const d = new Date(date)
@@ -48,19 +47,16 @@ const form = useForm({
     is_published: props.ask?.is_published ?? false,
 })
 
+// Tracked here (not inside WelcomeStep) because submit() needs it when
+// building the request payload — see the transform() below.
+const removeCoverImage = ref(false)
+
 const tabs = [
     { n: 1, label: 'Welcome' },
     { n: 2, label: 'Date & venue' },
     { n: 3, label: 'Final message' },
 ]
 
-// --- Cross-tab error surfacing --------------------------------------
-// Validation errors come back keyed by field name with no idea which
-// tab they belong to. Without this, a step-3 error is invisible if the
-// user is looking at step 1 — the form just silently "fails" from
-// their point of view. This maps each field to its tab, then (a) jumps
-// to the first tab with an error on submit failure, and (b) badges
-// every tab that has one so it's still visible after they navigate away.
 const tabFieldPrefixes = {
     1: ['for_name', 'type', 'cover_image', 'question', 'accept_label', 'decline_label'],
     2: ['scheduling_heading', 'min_date', 'max_date', 'venues'],
@@ -88,70 +84,17 @@ function jumpToFirstErrorTab(errors) {
     }
 }
 
-function addVenue() {
-    form.venues.push({ name: '', address: '' })
+function goToTab(n) {
+    activeTab.value = n
 }
 
-function removeVenue(index) {
-    form.venues.splice(index, 1)
+function nextStep() {
+    if (activeTab.value < 3) activeTab.value += 1
 }
 
-// --- Cover image: preview, cancel, and explicit removal --------------
-function resolveCoverUrl(path) {
-    if (!path) return null
-    if (/^https?:\/\//.test(path) || path.startsWith('/')) return path
-    return `/storage/${path}`
+function prevStep() {
+    if (activeTab.value > 1) activeTab.value -= 1
 }
-
-const coverPreviewUrl = ref(resolveCoverUrl(props.ask?.cover_image))
-const removeCoverImage = ref(false)
-const fileInput = ref(null)
-let objectUrl = null
-
-function onCoverChange(e) {
-    const file = e.target.files[0] ?? null
-    form.cover_image = file
-    removeCoverImage.value = false
-
-    if (objectUrl) {
-        URL.revokeObjectURL(objectUrl)
-        objectUrl = null
-    }
-
-    if (file) {
-        objectUrl = URL.createObjectURL(file)
-        coverPreviewUrl.value = objectUrl
-    } else {
-        coverPreviewUrl.value = resolveCoverUrl(props.ask?.cover_image)
-    }
-}
-
-// The × button does one of two things depending on what's showing:
-//  - a newly-picked file is staged  → cancel it, revert to the saved image
-//  - the saved image itself is showing → mark it for removal on save
-function clearCoverImage() {
-    if (form.cover_image) {
-        if (objectUrl) {
-            URL.revokeObjectURL(objectUrl)
-            objectUrl = null
-        }
-        form.cover_image = null
-        coverPreviewUrl.value = resolveCoverUrl(props.ask?.cover_image)
-    } else if (coverPreviewUrl.value) {
-        removeCoverImage.value = true
-        coverPreviewUrl.value = null
-    }
-    if (fileInput.value) fileInput.value.value = ''
-}
-
-function undoRemoveCoverImage() {
-    removeCoverImage.value = false
-    coverPreviewUrl.value = resolveCoverUrl(props.ask?.cover_image)
-}
-
-onBeforeUnmount(() => {
-    if (objectUrl) URL.revokeObjectURL(objectUrl)
-})
 
 function submit() {
     const options = { onError: jumpToFirstErrorTab }
@@ -176,284 +119,148 @@ function submit() {
         form.post('/asks', options)
     }
 }
-
-const formatDate = (date) => {
-    if (!date) return ''
-
-    return new Date(date).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    })
-}
-
-const formattedMinDate = computed(() => formatDate(form.min_date))
-const formattedMaxDate = computed(() => formatDate(form.max_date))
-
-// The link is generated by the backend when the ask is first created —
-// it's not something typed here, just displayed once it exists.
-const origin = typeof window !== 'undefined' ? window.location.origin : ''
-const fullLink = computed(() => (props.ask?.slug ? `${origin}/for-${props.ask.slug}` : ''))
-const justCopied = ref(false)
-
-function copyLink() {
-    if (!fullLink.value) return
-    navigator.clipboard.writeText(fullLink.value)
-    justCopied.value = true
-    setTimeout(() => (justCopied.value = false), 1600)
-}
 </script>
 
 <template>
-        <div class="max-w-2xl mx-auto p-6">
-        <div class="flex items-center gap-3 mb-6">
-            <svg aria-hidden="true" class="shrink-0 animate-bob" width="26" height="26" viewBox="0 0 22 22">
-                <circle cx="11" cy="9" r="7" class="fill-primary" />
-                <circle cx="8.5" cy="6.5" r="2" fill="white" fill-opacity="0.45" />
-                <line x1="11" y1="15" x2="11" y2="21" stroke="#2B2320" stroke-opacity="0.25" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-            <h1 class="font-display font-bold text-2xl text-foreground">
-                {{ isEditing ? 'Edit ask' : 'New ask' }}
-            </h1>
+    <div class="max-w-xl mx-auto p-6">
+        <div class="mb-8">
+            <Link
+                :href="`/asks`"
+                class="group inline-flex items-center gap-2 mb-5 rounded-lg px-2 py-1.5 -ml-2 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+            >
+                <svg
+                    aria-hidden="true"
+                    class="h-4 w-4 transition-transform group-hover:-translate-x-0.5"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                >
+                    <path
+                        d="M15 10H5M9 14L5 10L9 6"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+
+                <span>Back to asks</span>
+            </Link>
+
+            <div class="flex items-center gap-3">
+                <svg
+                    aria-hidden="true"
+                    class="shrink-0 animate-bob"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 22 22"
+                >
+                    <circle cx="11" cy="9" r="7" class="fill-primary" />
+                    <circle cx="8.5" cy="6.5" r="2" fill="white" fill-opacity="0.45" />
+                    <line
+                        x1="11"
+                        y1="15"
+                        x2="11"
+                        y2="21"
+                        stroke="#2B2320"
+                        stroke-opacity="0.25"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                    />
+                </svg>
+
+                <h1 class="font-display font-bold text-2xl text-foreground">
+                    {{ isEditing ? 'Edit ask' : 'New ask' }}
+                </h1>
+            </div>
+        </div>
+        <p class="text-sm text-foreground/55 mb-6 ml-9">
+            {{ isEditing ? "Update anything below — it saves when you finish the last step." : "Three quick steps and your link is ready to send." }}
+        </p>
+        <!-- Step progress -->
+        <div class="flex items-center justify-center gap-2 mb-7">
+            <template v-for="(t, idx) in tabs" :key="t.n">
+                <button type="button" class="group flex items-center gap-2" @click="goToTab(t.n)">
+                    <span
+                        class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors"
+                        :class="[
+                            activeTab === t.n ? 'border-primary bg-primary text-primary-foreground' :
+                            t.n < activeTab ? 'border-tertiary/60 bg-tertiary/10 text-tertiary' :
+                            'border-border bg-background text-foreground/35',
+                            tabHasError(t.n) && 'border-destructive text-destructive',
+                        ]"
+                    >
+                        <Check v-if="t.n < activeTab && !tabHasError(t.n)" class="size-4" />
+                        <template v-else>{{ t.n }}</template>
+                        <span
+                            v-if="tabHasError(t.n)"
+                            aria-hidden="true"
+                            class="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background"
+                        ></span>
+                    </span>
+                    <span
+                        class="hidden text-sm font-medium sm:inline transition-colors"
+                        :class="activeTab === t.n ? 'text-foreground' : 'text-foreground/45 group-hover:text-foreground/70'"
+                    >
+                        {{ t.label }}
+                    </span>
+                </button>
+                <div v-if="idx < tabs.length - 1" class="h-px w-6 sm:w-10 bg-border shrink-0"></div>
+            </template>
         </div>
 
         <div
             v-if="hasAnyErrors"
             role="alert"
             aria-live="polite"
-            class="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+            class="mb-5 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
         >
             Something needs fixing in
             <span class="font-semibold">{{ erroredTabs.map((t) => t.label).join(', ') }}</span>
-            — check the tab{{ erroredTabs.length > 1 ? 's' : '' }} marked below.
+            — check the step{{ erroredTabs.length > 1 ? 's' : '' }} above.
         </div>
 
-        <!-- Folder tabs — a real 3-step sequence, so numbering stays -->
-        <div class="flex gap-1 mb-6">
-            <button
-                v-for="t in tabs"
-                :key="t.n"
-                type="button"
-                class="relative px-4 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 transition-colors"
-                :class="activeTab === t.n
-          ? 'bg-card border-border text-primary z-10 -mb-px'
-          : 'bg-muted/60 border-transparent text-foreground/50 hover:text-foreground/70'"
-                @click="activeTab = t.n"
-            >
-                <span class="text-secondary font-display mr-1">{{ t.n }}</span>{{ t.label }}
-                <span
-                    v-if="tabHasError(t.n)"
-                    aria-hidden="true"
-                    class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-destructive ring-2 ring-background"
-                ></span>
-            </button>
-        </div>
-
-        <form @submit.prevent="submit" class="space-y-6">
-            <div class="rounded-lg rounded-tl-none border border-border bg-card shadow-paper p-6 -mt-6 pt-10">
-                <!-- Step 1 -->
-                <section v-show="activeTab === 1" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-foreground mb-1.5">Who is this for?</label>
-                        <input
-                            v-model="form.for_name"
-                            type="text"
-                            placeholder="e.g. My Crush, Agnes"
-                            class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow"
-                            :class="{ 'shake border-destructive ring-2 ring-destructive/15': form.errors.for_name }"
-                        />
-                        <p v-if="form.errors.for_name" class="text-destructive text-sm mt-1">{{ form.errors.for_name }}</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-foreground mb-1.5">Type</label>
-                        <select v-model="form.type" class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow">
-                            <option value="date">Date</option>
-                            <option value="money">Money</option>
-                            <option value="custom">Custom</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-foreground mb-1.5">
-                            {{ coverPreviewUrl ? 'Cover image' : 'Add a cover image' }}
-                        </label>
-
-                        <div class="flex items-center gap-4">
-                            <div v-if="coverPreviewUrl" class="relative shrink-0">
-                                <div class="w-16 h-16 rounded-md overflow-hidden border border-border bg-muted">
-                                    <img :src="coverPreviewUrl" alt="Cover preview" class="w-full h-full object-cover" />
-                                </div>
-                                <button
-                                    type="button"
-                                    class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground text-background text-[10px] flex items-center justify-center shadow-paper hover:scale-110 transition-transform"
-                                    :aria-label="form.cover_image ? 'cancel new image' : 'remove image'"
-                                    @click="clearCoverImage"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <div class="min-w-0">
-                                <input
-                                    ref="fileInput"
-                                    type="file"
-                                    accept="image/*"
-                                    @change="onCoverChange"
-                                    class="w-full text-sm text-foreground/70 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:text-accent-foreground file:px-3 file:py-1.5 file:text-sm file:font-semibold"
-                                />
-                                <p v-if="removeCoverImage" class="font-hand text-base text-primary mt-1">
-                                    image will be removed when you save —
-                                    <button type="button" class="underline hover:opacity-70" @click="undoRemoveCoverImage">undo</button>
-                                </p>
-                                <p v-else-if="coverPreviewUrl && !form.cover_image && isEditing" class="font-hand text-base text-tertiary mt-1">
-                                    current image kept unless you pick a new one
-                                </p>
-                            </div>
-                        </div>
-                        <p v-if="form.errors.cover_image" class="text-destructive text-sm mt-1">{{ form.errors.cover_image }}</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-foreground mb-1.5">Question</label>
-                        <input
-                            v-model="form.question"
-                            type="text"
-                            placeholder="Would you go on a date with me?"
-                            class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow"
-                            :class="{ 'shake border-destructive ring-2 ring-destructive/15': form.errors.question }"
-                        />
-                        <p v-if="form.errors.question" class="text-destructive text-sm mt-1">{{ form.errors.question }}</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-foreground mb-1.5">Accept button text</label>
-                            <input v-model="form.accept_label" type="text" placeholder="Yes / Now" class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                            <p v-if="form.errors.accept_label" class="text-destructive text-sm mt-1">{{ form.errors.accept_label }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-foreground mb-1.5">Decline text (never clickable)</label>
-                            <input v-model="form.decline_label" type="text" placeholder="No / I don't know" class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                            <p v-if="form.errors.decline_label" class="text-destructive text-sm mt-1">{{ form.errors.decline_label }}</p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Step 2 -->
-                <section v-show="activeTab === 2" class="space-y-4">
-                    <label class="flex items-center gap-2.5">
-                        <input type="checkbox" v-model="form.has_scheduling_step" class="accent-primary w-4 h-4" />
-                        <span class="text-sm font-semibold text-foreground">Include a date/venue step</span>
-                    </label>
-
-                    <template v-if="form.has_scheduling_step">
-                        <div>
-                            <label class="block text-sm font-semibold text-foreground mb-1.5">Step heading</label>
-                            <input v-model="form.scheduling_heading" type="text" class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                            <p v-if="form.errors.scheduling_heading" class="text-destructive text-sm mt-1">{{ form.errors.scheduling_heading }}</p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-foreground mb-1.5">Earliest date</label>
-                                <input v-model="form.min_date" type="date" class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                                <p v-if="form.errors.min_date" class="text-destructive text-sm mt-1">{{ form.errors.min_date }}</p>
-                                <p v-else-if="formattedMinDate" class="font-hand text-base text-tertiary mt-1">from {{ formattedMinDate }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-foreground mb-1.5">Latest date</label>
-                                <input v-model="form.max_date" type="date" class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                                <p v-if="form.errors.max_date" class="text-destructive text-sm mt-1">{{ form.errors.max_date }}</p>
-                                <p v-else-if="formattedMaxDate" class="font-hand text-base text-tertiary mt-1">till {{ formattedMaxDate }}</p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-foreground mb-2">Venue options (optional)</label>
-                            <div v-for="(venue, i) in form.venues" :key="i" class="mb-2">
-                                <div class="flex gap-2">
-                                    <input v-model="venue.name" type="text" placeholder="Venue name" class="flex-1 rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                                    <input v-model="venue.address" type="text" placeholder="Address (optional)" class="flex-1 rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                                    <button type="button" class="text-destructive px-2 hover:opacity-70" @click="removeVenue(i)">✕</button>
-                                </div>
-                                <p v-if="form.errors[`venues.${i}.name`]" class="text-destructive text-sm mt-1">{{ form.errors[`venues.${i}.name`] }}</p>
-                                <p v-if="form.errors[`venues.${i}.address`]" class="text-destructive text-sm mt-1">{{ form.errors[`venues.${i}.address`] }}</p>
-                            </div>
-                            <button type="button" class="font-hand text-lg text-primary hover:opacity-70" @click="addVenue">+ add another venue</button>
-                        </div>
-                    </template>
-                </section>
-
-                <!-- Step 3 -->
-                <section v-show="activeTab === 3" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-foreground mb-1.5">Final heading</label>
-                        <input v-model="form.final_heading" type="text" class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                        <p v-if="form.errors.final_heading" class="text-destructive text-sm mt-1">{{ form.errors.final_heading }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-foreground mb-1.5">Final message</label>
-                        <textarea v-model="form.final_message" rows="3" class="w-full rounded-lg border-1.5 border-border bg-background/40 p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow"></textarea>
-                        <p v-if="form.errors.final_message" class="text-destructive text-sm mt-1">{{ form.errors.final_message }}</p>
-                    </div>
-                </section>
+        <form @submit.prevent="submit">
+            <div class="rounded-xl border border-border bg-card shadow-paper p-6">
+                <WelcomeStep
+                    v-show="activeTab === 1"
+                    :form="form"
+                    :ask="ask"
+                    v-model:remove-cover-image="removeCoverImage"
+                />
+                <SchedulingStep v-show="activeTab === 2" :form="form" />
+                <FinalStep v-show="activeTab === 3" :form="form" :ask="ask" />
             </div>
 
-            <!-- Link + publish, always visible -->
-            <section class="space-y-4 rounded-lg border border-border bg-accent/30 p-5">
-                <div>
-                    <label class="block text-sm font-semibold text-foreground mb-1.5">Your link</label>
+            <!-- Guided footer: back / continue / save, always in the same place -->
+            <div class="mt-5 flex items-center justify-between gap-3">
+                <button
+                    v-if="activeTab > 1"
+                    type="button"
+                    class="rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground/70 hover:text-foreground hover:border-foreground/30 transition-colors"
+                    @click="prevStep"
+                >
+                    Back
+                </button>
+                <span v-else></span>
 
-                    <!-- Backend-generated once the ask is first saved — never
-                         user-editable, so this is display-only. -->
-                    <div
-                        v-if="fullLink"
-                        class="flex items-center justify-between gap-3 rounded-lg border-1.5 border-border bg-card p-2.5"
-                    >
-                        <span class="truncate text-sm text-foreground/80">{{ fullLink }}</span>
-                        <button
-                            type="button"
-                            class="shrink-0 text-xs font-semibold rounded-full border border-border px-3 py-1 text-foreground/60 hover:border-tertiary hover:text-tertiary transition-colors"
-                            @click="copyLink"
-                        >
-                            {{ justCopied ? 'Copied!' : 'Copy' }}
-                        </button>
-                    </div>
-                    <p v-else class="font-hand text-lg text-tertiary">
-                        your link gets created automatically once you save this ask
-                    </p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-foreground mb-1.5">Share caption (optional)</label>
-                    <input v-model="form.share_text" type="text" placeholder="Something to go along with the link when you share it" class="w-full rounded-lg border-1.5 border-border bg-card p-2.5 focus:border-tertiary focus:ring-2 focus:ring-tertiary/15 outline-none transition-shadow" />
-                </div>
-
-                <label class="flex items-center gap-2.5">
-                    <input type="checkbox" v-model="form.is_published" class="accent-primary w-4 h-4" />
-                    <span class="text-sm font-semibold text-foreground">Publish (make link live)</span>
-                </label>
-            </section>
-
-            <button
-                type="submit"
-                :disabled="form.processing"
-                class="w-full rounded-full bg-primary text-primary-foreground font-semibold py-3.5 shadow-paper hover:-translate-y-0.5 hover:rotate-1 transition-all duration-200 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:rotate-0"
-            >
-                {{ isEditing ? 'Save changes' : 'Create ask' }}
-            </button>
+                <button
+                    v-if="activeTab < 3"
+                    type="button"
+                    class="rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-semibold hover:-translate-y-0.5 transition-all duration-200"
+                    @click="nextStep"
+                >
+                    Continue
+                </button>
+                <button
+                    v-else
+                    type="submit"
+                    :disabled="form.processing"
+                    class="flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold shadow-paper hover:-translate-y-0.5 hover:rotate-1 transition-all duration-200 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:rotate-0"
+                >
+                    <Spinner v-if="form.processing" class="size-4" />
+                    {{ isEditing ? 'Save changes' : 'Create ask' }}
+                </button>
+            </div>
         </form>
     </div>
 </template>
-
-<style scoped>
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
-}
-.shake {
-    animation: shake 0.35s;
-}
-</style>

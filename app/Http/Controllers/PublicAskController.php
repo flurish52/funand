@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AskLink;
 use App\Http\Requests\StoreAskResponseRequest;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Inertia\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -45,7 +43,6 @@ class PublicAskController extends Controller
                 ]),
             ],
             'slug' => $slug,
-            'alreadyAnswered' => $ask->responses()->exists(),
         ]);
     }
 
